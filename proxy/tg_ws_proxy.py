@@ -60,7 +60,7 @@ _IP_TO_DC: Dict[str, Tuple[int, bool]] = {
     '91.108.56.151': (5, True),
     # DC203
     '91.105.192.100': (203, False),
-}
+} 
 
 _dc_opt: Dict[int, Optional[str]] = {}
 
