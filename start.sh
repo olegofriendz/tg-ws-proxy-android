@@ -6,7 +6,7 @@ ADDRESSES_FILE="addresses.log"
 
 echo "Запуск прокси на порту $PORT..."
 killall python 2>/dev/null
-nohup python proxy/tg_ws_proxy.py --port $PORT --verbose > $LOG_FILE 2>&1 &
+nohup python proxy/tg_ws_proxy.py > $LOG_FILE 2>&1 &
 PROXY_PID=$!
 
 echo "Прокси запущен (PID: $PROXY_PID)"
