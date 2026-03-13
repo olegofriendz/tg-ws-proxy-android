@@ -10,12 +10,28 @@ import ssl
 import struct
 import sys
 import time
+import json
 from typing import Dict, List, Optional, Set, Tuple
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from pathlib import Path
 
 
 DEFAULT_PORT = 1080
 log = logging.getLogger('tg-ws-proxy')
+
+def load_ip_mapping_from_file():
+    mapping_file = Path("ip_mapping.json")
+    if mapping_file.exists():
+        try:
+            with open(mapping_file, 'r') as f:
+                file_mapping = json.load(f)
+            # Конвертируем из JSON формата [dc, is_media] в tuple
+            converted = {ip: (int(dc), bool(is_media)) for ip, (dc, is_media) in file_mapping.items()}
+            print(f"✅ Загружено {len(converted)} IP из ip_mapping.json")
+            return converted
+        except Exception as e:
+            print(f"Ошибка чтения ip_mapping.json: {e}")
+    return {}
 
 _TG_RANGES = [
     # 185.76.151.0/24
@@ -32,8 +48,8 @@ _TG_RANGES = [
      struct.unpack('!I', _socket.inet_aton('91.108.255.255'))[0]),
 ]
 
-# IP -> (dc_id, is_media)
-_IP_TO_DC: Dict[str, Tuple[int, bool]] = {
+# IP -> (dc_id, is_media) fallback
+_BUILTIN_IP_TO_DC: Dict[str, Tuple[int, bool]] = {
     # DC1
     '149.154.175.50': (1, False), '149.154.175.51': (1, False),
     '149.154.175.53': (1, False), '149.154.175.54': (1, False),
@@ -60,7 +76,12 @@ _IP_TO_DC: Dict[str, Tuple[int, bool]] = {
     '91.108.56.151': (5, True),
     # DC203
     '91.105.192.100': (203, False),
-} 
+}
+
+_FILE_MAPPING = load_ip_mapping_from_file()
+_IP_TO_DC: Dict[str, Tuple[int, bool]] = {**_BUILTIN_IP_TO_DC, **_FILE_MAPPING}
+
+print(f"Всего IP в маппинге: {len(_IP_TO_DC)}")
 
 _dc_opt: Dict[int, Optional[str]] = {}
 
