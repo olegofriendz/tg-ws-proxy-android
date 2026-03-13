@@ -750,17 +750,20 @@ async def _handle_client(reader, writer):
             writer.close()
             return
 
-        # -- Extract DC ID --
+        # Extract DC ID
         dc, is_media = _dc_from_init(init)
         init_patched = False
-        
-        # Android (may be ios too) with useSecret=0 has random dc_id bytes — patch it
-        if dc is None and dst in _IP_TO_DC:
-            dc, is_media = _IP_TO_DC.get(dst)
-            if is_media and dc > 0: dc = -dc
-            if dc in _dc_opt:
-                init = _patch_init_dc(init, dc)
-                init_patched = True
+
+        # Если декодирование вернуло мусор или None — берём из маппинга
+        if dst in _IP_TO_DC:
+            mapped_dc, mapped_media = _IP_TO_DC[dst]
+            # Если декодирование сломалось (вернуло None или странный DC > 10)
+            if dc is None or (isinstance(dc, int) and abs(dc) > 10):
+                dc, is_media = mapped_dc, mapped_media
+                if is_media and dc > 0: dc = -dc
+                if dc in _dc_opt:
+                    init = _patch_init_dc(init, dc)
+                    init_patched = True
 
         if dc is None or dc not in _dc_opt:
             log.warning("[%s] unknown DC%s for %s:%d -> TCP passthrough",
