@@ -25,13 +25,20 @@ def load_ip_mapping_from_file():
         try:
             with open(mapping_file, 'r') as f:
                 file_mapping = json.load(f)
-            # Конвертируем из JSON формата [dc, is_media] в tuple
             converted = {ip: (int(dc), bool(is_media)) for ip, (dc, is_media) in file_mapping.items()}
-            print(f"✅ Загружено {len(converted)} IP из ip_mapping.json")
+            print(f"Загружено {len(converted)} IP из ip_mapping.json")
             return converted
         except Exception as e:
             print(f"Ошибка чтения ip_mapping.json: {e}")
     return {}
+
+def normalize_dc(dc_number: int) -> int:
+    DC_REMAP = {
+        285: 2,
+        509: 2,
+        203: 203,
+    }
+    return DC_REMAP.get(dc_number, dc_number)
 
 _TG_RANGES = [
     # 185.76.151.0/24
@@ -50,31 +57,16 @@ _TG_RANGES = [
 
 # IP -> (dc_id, is_media) fallback
 _BUILTIN_IP_TO_DC: Dict[str, Tuple[int, bool]] = {
-    # DC1
     '149.154.175.50': (1, False), '149.154.175.51': (1, False),
     '149.154.175.53': (1, False), '149.154.175.54': (1, False),
-    '149.154.175.52': (1, True),
-    # DC2
     '149.154.167.41': (2, False), '149.154.167.50': (2, False),
     '149.154.167.51': (2, False), '149.154.167.220': (2, False),
-    '95.161.76.100':  (2, False),
-    '149.154.167.151': (2, True), '149.154.167.222': (2, True),
-    '149.154.167.223': (2, True), 
-    # DC3
+    '149.154.167.151': (2, True), '149.154.167.223': (2, True),
     '149.154.175.100': (3, False), '149.154.175.101': (3, False),
-    '149.154.175.102': (3, True),
-    # DC4
     '149.154.167.91': (4, False), '149.154.167.92': (4, False),
-    '149.154.164.250': (4, True), '149.154.166.120': (4, True),
-    '149.154.166.121': (4, True), '149.154.167.118': (4, True),
-    '149.154.165.111': (4, True),
-    # DC5
+    '149.154.166.120': (4, True), '149.154.166.121': (4, True),
     '91.108.56.100': (5, False), '91.108.56.101': (5, False),
     '91.108.56.116': (5, False), '91.108.56.126': (5, False),
-    '149.154.171.5':  (5, False),
-    '91.108.56.102': (5, True), '91.108.56.128': (5, True),
-    '91.108.56.151': (5, True),
-    # DC203
     '91.105.192.100': (203, False),
 }
 
