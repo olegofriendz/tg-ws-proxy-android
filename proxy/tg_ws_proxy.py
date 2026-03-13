@@ -32,14 +32,6 @@ def load_ip_mapping_from_file():
             print(f"Ошибка чтения ip_mapping.json: {e}")
     return {}
 
-def normalize_dc(dc_number: int) -> int:
-    DC_REMAP = {
-        285: 2,
-        509: 2,
-        203: 203,
-    }
-    return DC_REMAP.get(dc_number, dc_number)
-
 _TG_RANGES = [
     # 185.76.151.0/24
     (struct.unpack('!I', _socket.inet_aton('185.76.151.0'))[0],
